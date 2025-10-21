@@ -148,21 +148,23 @@ app.get("/logs", async (req, res) => {
         lgs.horas_trabalhadas,
         lgs.linhas_codigo,
         lgs.bugs_corrigidos,
-      (SELECT COUNT(*) FROM devhub.like WHERE devhub.like.id_log = lgs.id_lgs) AS likes,
-      (SELECT COUNT(*) FROM devhub.comment WHERE devhub.comment.id_log = lgs.id_lgs) as qnt_comments
+        lgs.id_user,
+      (SELECT COUNT(*) FROM devhub.like WHERE devhub.like.id_lgs = lgs.id_lgs) AS likes,
+      (SELECT COUNT(*) FROM devhub.comment WHERE devhub.comment.id_lgs = lgs.id_lgs) as qnt_comments
     FROM
       devhub.lgs 
     left JOIN devhub.like
-    ON devhub.like.id_log = devhub.lgs.id_lgs
+    ON devhub.like.id_lgs = devhub.lgs.id_lgs
     LEFT JOIN devhub.comment
-    ON devhub.comment.id_log = devhub.lgs.id_lgs
+    ON devhub.comment.id_lgs = devhub.lgs.id_lgs
     GROUP BY
-    lgs.id,
+    lgs.id_lgs,
       lgs.categoria,
       lgs.horas_trabalhadas,
       lgs.linhas_codigo,
-      lgs.bugs_corrigidos 
-    ORDER BY devhub.lgs.id asc
+      lgs.bugs_corrigidos,
+      lgs.id_user
+    ORDER BY devhub.lgs.id_lgs asc
       LIMIT ?
       OFFSET ?
     ;     `,
@@ -176,12 +178,13 @@ app.post("/logs", async (req, res) => {
   try {
     const { body } = req;
     const [results] = await pool.query(
-      "INSERT INTO lgs(categoria, horas_trabalhadas, linhas_codigo, bugs_corrigidos) VALUES (?, ?, ?, ?)",
+      "INSERT INTO lgs(categoria, horas_trabalhadas, linhas_codigo, bugs_corrigidos, id_user) VALUES (?, ?, ?, ?, ?)",
       [
         body.categoria,
         body.horas_trabalhadas,
         body.linhas_codigo,
         body.bugs_corrigidos,
+        body.id_user
       ]
     );
     const [logCriado] = await pool.query(
