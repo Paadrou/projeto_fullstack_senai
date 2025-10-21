@@ -25,7 +25,7 @@ app.get("/usuarios", async (req, res) => {
 app.get("/usuarios/:id", async (req, res) => {
   const { id } = req.params;
   const [results] = await pool.query(
-    "SELECT * FROM user WHERE id=?",
+    "SELECT * FROM user WHERE id_user=?",
     id
   );
   res.send(results);
@@ -35,12 +35,12 @@ app.post("/usuarios", async (req, res) => {
   try {
     const { body } = req;
     const [results] = await pool.query(
-      "INSERT INTO user (nome,idade) VALUES (?,?)",
-      [body.nome, body.idade]
+      "INSERT INTO user (nome,idade, email, senha) VALUES (?,?,?,?)",
+      [body.nome, body.idade, body.email, body.senha]
     );
 
     const [usuarioCriado] = await pool.query(
-      "Select * from user WHERE id =?",
+      "Select * from user WHERE id_user=?",
       results.insertId
     );
 
@@ -54,7 +54,20 @@ app.delete("/usuarios/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const [results] = await pool.query(
-      "DELETE FROM user WHERE id = ?",
+      "DELETE FROM user WHERE id_user=?",
+      id
+    );
+    res.status(200).send("Usuário deletado!", results);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.delete("/usuarios/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [results] = await pool.query(
+      "DELETE FROM user WHERE id_user = ?",
       id
     );
     res.status(200).send("Usuário deletado!", results);
@@ -68,7 +81,7 @@ app.put("/usuarios/:id", async (req, res) => {
     const { id } = req.params;
     const { body } = req;
     const [results] = await pool.query(
-      "UPDATE user SET `nome` = ?, `idade` = ? WHERE id = ?; ",
+      "UPDATE user SET `nome` = ?, `idade` = ? WHERE id_user = ?; ",
       [body.nome, body.idade, id]
     );
     res.status(200).send("Usuario atualizado", results);
@@ -87,7 +100,7 @@ app.post("/registrar", async (req, res) => {
     );
 
     const [usuarioCriado] = await pool.query(
-      "Select * from user WHERE id=?",
+      "Select * from user WHERE id_user=?",
       results.insertId
     );
 
@@ -130,19 +143,19 @@ app.get("/logs", async (req, res) => {
   const [results] = await pool.query(
     `
       SELECT
-      lgs.id,
+      lgs.id_lgs,
         lgs.categoria,
         lgs.horas_trabalhadas,
         lgs.linhas_codigo,
         lgs.bugs_corrigidos,
-      (SELECT COUNT(*) FROM devhub.like WHERE devhub.like.id_log = lgs.id) AS likes,
-      (SELECT COUNT(*) FROM devhub.comment WHERE devhub.comment.id_log = lgs.id) as qnt_comments
+      (SELECT COUNT(*) FROM devhub.like WHERE devhub.like.id_log = lgs.id_lgs) AS likes,
+      (SELECT COUNT(*) FROM devhub.comment WHERE devhub.comment.id_log = lgs.id_lgs) as qnt_comments
     FROM
       devhub.lgs 
     left JOIN devhub.like
-    ON devhub.like.id_log = devhub.lgs.id
+    ON devhub.like.id_log = devhub.lgs.id_lgs
     LEFT JOIN devhub.comment
-    ON devhub.comment.id_log = devhub.lgs.id
+    ON devhub.comment.id_log = devhub.lgs.id_lgs
     GROUP BY
     lgs.id,
       lgs.categoria,
@@ -172,7 +185,7 @@ app.post("/logs", async (req, res) => {
       ]
     );
     const [logCriado] = await pool.query(
-      "SELECT * FROM lgs WHERE id=?",
+      "SELECT * FROM lgs WHERE id_lgs=?",
       results.insertId
     );
     res.status(201).json(logCriado);
@@ -209,6 +222,20 @@ app.post('/likes', async (req, res) => {
   }
 })
 
+app.delete("/likes", async (req, res) => {
+  try {
+    const { query } = req;
+    const id_lgs = Number(query.id_lgs);
+    const id_user = Number(query.id_user);
+    const [results] = await pool.query(
+      "DELETE FROM `like` WHERE id_lgs=? AND id_user=?",
+      [id_lgs, id_user]
+    );
+    res.status(200).send("Like deletado!", results);
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 app.listen(3000, () => {
   console.log(`Servidor rodando na porta: http://localhost:3000`);
