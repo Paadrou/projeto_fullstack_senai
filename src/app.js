@@ -240,6 +240,16 @@ app.delete("/likes", async (req, res) => {
   }
 });
 
+//GET por id
+app.get("/metricas-usuario/:id", async (req, res) => {
+  const { id } = req.params;
+  const [results] = await pool.query(
+    "SELECT sum(lgs.horas_trabalhadas) AS 'horas_trabalhadas', sum(lgs.bugs_corrigidos) AS 'bugs_corrigidos', sum(lgs.linhas_codigo) AS 'linhas_codigo', count(id_lgs), user.nome FROM lgs INNER JOIN `user` ON lgs.id_user = user.id_user WHERE lgs.id_user = ?;",
+    id
+  );
+  res.send(results);
+});
+
 app.listen(3000, () => {
   console.log(`Servidor rodando na porta: http://localhost:3000`);
 });
