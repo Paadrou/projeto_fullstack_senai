@@ -35,11 +35,37 @@ input {
 
 .card-log{
     display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: center;
-    height: 300px;
+    justify-content: flex-start;
     border: 1px solid black;
     border-radius: 10px;
     margin: 10px 10px 10px 10px;
+}
+
+.linhasMetricas{
+    font-weight: bold;
+}
+
+span{
+    font-weight: bold;  
+}
+
+.btnCriarLog{
+    margin: 25px 0 25px 25px;
+    width: 200px;
+}
+
+.card-logs{
+    margin-left: 50px;
+}
+
+.post-log{
+    margin: 15px;
+    padding: 10px;
+    border: 1px solid #cacaca;
+    border-radius: 10px;
+    background-color: #e0e0e0d5;
+}
+
+main{
+    background-color: #e0e0e0d5;
 }
