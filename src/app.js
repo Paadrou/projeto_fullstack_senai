@@ -149,6 +149,8 @@ app.get("/logs", async (req, res) => {
         lgs.linhas_codigo,
         lgs.bugs_corrigidos,
         lgs.id_user,
+        lgs.descricao,
+        user.nome,
       (SELECT COUNT(*) FROM devhub.like WHERE devhub.like.id_lgs = lgs.id_lgs) AS likes,
       (SELECT COUNT(*) FROM devhub.comment WHERE devhub.comment.id_lgs = lgs.id_lgs) as qnt_comments
     FROM
@@ -157,13 +159,16 @@ app.get("/logs", async (req, res) => {
     ON devhub.like.id_lgs = devhub.lgs.id_lgs
     LEFT JOIN devhub.comment
     ON devhub.comment.id_lgs = devhub.lgs.id_lgs
+    LEFT JOIN devhub.user
+    ON devhub.user.id_user = devhub.lgs.id_user
     GROUP BY
     lgs.id_lgs,
       lgs.categoria,
       lgs.horas_trabalhadas,
       lgs.linhas_codigo,
       lgs.bugs_corrigidos,
-      lgs.id_user
+      lgs.id_user,
+      lgs.descricao
     ORDER BY devhub.lgs.id_lgs asc
       LIMIT ?
       OFFSET ?
@@ -214,10 +219,10 @@ app.post('/likes', async (req, res) => {
   try {
     const { body } = req;
     const [results] = await pool.query(
-      'INSERT INTO `like`(log_id, user_id) VALUES(?, ?)', [body.log_id, body.user_id]
+      'INSERT INTO `like`(id_lgs, id_user) VALUES(?, ?)', [body.id_lgs, body.id_user]
     )
     const [likeCriado] = await pool.query(
-      'SELECT * FROM `like` WHERE id=?', results.insertId
+      'SELECT * FROM `like` WHERE id_like=?', results.insertId
     )
     res.status(201).json(likeCriado)
   } catch (error) {

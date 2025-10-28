@@ -52,6 +52,7 @@ span{
 .btnCriarLog{
     margin: 25px 0 25px 25px;
     width: 200px;
+    color: #fff;
 }
 
 .card-logs{
@@ -68,4 +69,23 @@ span{
 
 main{
     background-color: #e0e0e0d5;
+}
+
+.categoria-logs{
+    font-size: 10px;
+    margin-bottom: 35px;
+    padding: 8px;
+    border-radius: 10px;
+    background-color: #003cff56;
+}
+
+.dadinhos{
+    background-color: #003cff25;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+button{
+    border: none;
+    background-color: transparent;
 }
