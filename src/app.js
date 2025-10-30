@@ -151,12 +151,12 @@ app.get("/logs", async (req, res) => {
         lgs.id_user,
         lgs.descricao,
         user.nome,
-      (SELECT COUNT(*) FROM devhub.like WHERE devhub.like.id_lgs = lgs.id_lgs) AS likes,
+      (SELECT COUNT(*) FROM devhub.likes WHERE devhub.likes.id_lgs = lgs.id_lgs) AS likes,
       (SELECT COUNT(*) FROM devhub.comment WHERE devhub.comment.id_lgs = lgs.id_lgs) as qnt_comments
     FROM
       devhub.lgs 
-    left JOIN devhub.like
-    ON devhub.like.id_lgs = devhub.lgs.id_lgs
+    left JOIN devhub.likes
+    ON devhub.likes.id_lgs = devhub.lgs.id_lgs
     LEFT JOIN devhub.comment
     ON devhub.comment.id_lgs = devhub.lgs.id_lgs
     LEFT JOIN devhub.user
@@ -215,35 +215,66 @@ app.get('/likes', async (req, res) => {
   }
 })
 
-app.post('/likes', async (req, res) => {
-  try {
-    const { body } = req;
-    const [results] = await pool.query(
-      'INSERT INTO `like`(id_lgs, id_user) VALUES(?, ?)', [body.id_lgs, body.id_user]
-    )
-    const [likeCriado] = await pool.query(
-      'SELECT * FROM `like` WHERE id_like=?', results.insertId
-    )
-    res.status(201).json(likeCriado)
-  } catch (error) {
-    console.log(error)
-  }
-})
+// ROTAS DE LIKE / DESLIKE
 
-app.delete("/likes", async (req, res) => {
+app.post("/likes", async (req, res) => {
   try {
-    const { query } = req;
-    const id_lgs = Number(query.id_lgs);
-    const id_user = Number(query.id_user);
-    const [results] = await pool.query(
-      "DELETE FROM `like` WHERE id_lgs=? AND id_user=?",
+    const { id_lgs, id_user } = req.body;
+
+    if (!id_lgs || !id_user) {
+      return res.status(400).json({ message: "id_lgs e id_user são obrigatórios" });
+    }
+
+    // 1️⃣ Verifica se o usuário já curtiu
+    const [exists] = await pool.query(
+      "SELECT * FROM likes WHERE id_lgs = ? AND id_user = ?",
       [id_lgs, id_user]
     );
-    res.status(200).send("Like deletado!", results);
+
+    if (exists.length > 0) {
+      // Já curtiu → deletar (descurtir)
+      await pool.query(
+        "DELETE FROM likes WHERE id_lgs = ? AND id_user = ?",
+        [id_lgs, id_user]
+      );
+
+      // Conta total de likes
+      const [[row]] = await pool.query(
+        "SELECT COUNT(*) as totalLikes FROM likes WHERE id_lgs = ?",
+        [id_lgs]
+      );
+
+      return res.status(200).json({
+        message: "Descurtido com sucesso",
+        newLikes: row.totalLikes,
+        curtido: false
+      });
+    }
+
+    // Não curtiu → inserir (curtir)
+    await pool.query(
+      "INSERT INTO likes (id_lgs, id_user) VALUES (?, ?)",
+      [id_lgs, id_user]
+    );
+
+    // Conta total de likes
+    const [[row]] = await pool.query(
+      "SELECT COUNT(*) as totalLikes FROM likes WHERE id_lgs = ?",
+      [id_lgs]
+    );
+
+    return res.status(201).json({
+      message: "Curtido com sucesso",
+      newLikes: row.totalLikes,
+      curtido: true
+    });
   } catch (error) {
-    console.log(error);
+    console.error("Erro na rota /likes:", error);
+    res.status(500).json({ message: "Erro interno ao processar curtida" });
   }
 });
+
+
 
 //GET por id
 app.get("/metricas-usuario/:id", async (req, res) => {

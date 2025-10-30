@@ -89,3 +89,11 @@ button{
     border: none;
     background-color: transparent;
 }
+
+.btn-like{
+    border: none;
+    background-color: transparent;
+}
+.cute-heart{
+    height: 26px;
+}

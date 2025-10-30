@@ -79,31 +79,42 @@
 
     //CURTIR
 
-    function curtir(id_lgs, id_user, likesAtual) {
-    const url_like = "http://localhost:3000/likes";
+    async function toggleLike(id_lgs, id_user) {
+  const url_like = "http://localhost:3000/likes";
+  const botao = document.querySelector(`#like-${id_lgs}`);
+  if (!botao) return;
 
-    fetch(url_like, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        body: JSON.stringify({ id_lgs, id_user })
-    })
-        .then(res => {
-            if (!res.ok) throw new Error("Erro ao curtir");
-            return res.json();
-        })
-        .then(data => {
-            // Atualiza o número de likes na tela
-            const botao = document.querySelector(`#like-${id_lgs}`);
-            if (botao) {
-                let novoValor = likesAtual + 1;
-                botao.innerHTML = `<img src="../assets/heart.svg" alt=""> ${novoValor}`;
-            }
-        })
-        .catch(err => console.error(err));
+  // evita cliques múltiplos
+  if (botao.disabled) return;
+  botao.disabled = true;
+
+  try {
+    const res = await fetch(url_like, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_lgs, id_user })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Erro ao curtir/descurtir");
+
+    // Atualiza frontend com o valor retornado
+    const spanCount = botao.querySelector(".like-count");
+    if (spanCount) spanCount.textContent = data.newLikes;
+    botao.setAttribute("data-curtido", data.curtido);
+    botao.classList.toggle("liked", data.curtido);
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    botao.disabled = false;
+  }
 }
+
+
+
+
 
 
     //pega metricas
@@ -152,12 +163,39 @@
 
                 console.log(data);
 
-                html += `<div class="post-log "> <p class='categoria'>
-                    <div class="cima-card d-flex justify-content-between"><h5>${element.nome}</h5><h6 class="categoria-logs">${element.categoria}</h6> </div>
-                    <div class="meio-card mb-3"> ${element.descricao}</div>
-                    <div class='mb-3 text-center d-flex justify-content-around'> <div class="dadinhos">${element.horas_trabalhadas}h <br> <p>horas trabalhadas</p></div> <div class="dadinhos">${element.linhas_codigo} <br> <p>linhas de codigo</p> </div> <div class="dadinhos"> ${element.bugs_corrigidos}<br> <p>bugs corrigido</p> </div></div>
-                    <div class="baixo-card">  <button id="like-${element.id_lgs}" onclick="curtir(${element.id_lgs}, ${element.id_user}, ${element.likes})"><img src="../assets/heart.svg" alt=""> ${element.likes}</button> </button> <button> <img src="../assets/comentario.svg" alt=""> ${element.qnt_comments} </button></div>
-                    </div>`
+                html += `
+<div class="post-log">
+  <div class="cima-card d-flex justify-content-between">
+    <h5>${element.nome}</h5>
+    <h6 class="categoria-logs">${element.categoria}</h6>
+  </div>
+
+  <div class="meio-card mb-3">${element.descricao}</div>
+
+  <div class="mb-3 text-center d-flex justify-content-around">
+    <div class="dadinhos">${element.horas_trabalhadas}h<br><p>horas trabalhadas</p></div>
+    <div class="dadinhos">${element.linhas_codigo}<br><p>linhas de código</p></div>
+    <div class="dadinhos">${element.bugs_corrigidos}<br><p>bugs corrigidos</p></div>
+  </div>
+  
+  <div class="baixo-card">
+    <button
+      id="like-${element.id_lgs}"
+      class="btn btn-like ${element.already_liked ? 'liked' : ''}"
+      data-likes="${element.likes}"
+      data-curtido="${element.already_liked ? 'true' : 'false'}"
+      onclick="toggleLike(${element.id_lgs}, ${element.id_user})">
+      <img src="../assets/cute-heart.svg" class='cute-heart' alt="Curtir"> <span class="like-count">${element.likes}</span>
+    </button>
+
+    <button class="btn">      
+      <img src="../assets/comentario.svg" alt="Comentários"> ${element.qnt_comments}
+    </button>
+  </div>
+</div>
+`;
+
+
             }
             document.getElementById("logs-lista").innerHTML = html
         })
