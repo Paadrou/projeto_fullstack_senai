@@ -215,7 +215,6 @@ app.get('/likes', async (req, res) => {
   }
 })
 
-// ROTAS DE LIKE / DESLIKE
 
 app.post("/likes", async (req, res) => {
   try {
@@ -232,13 +231,12 @@ app.post("/likes", async (req, res) => {
     );
 
     if (exists.length > 0) {
-      // Já curtiu → deletar (descurtir)
+
       await pool.query(
         "DELETE FROM likes WHERE id_lgs = ? AND id_user = ?",
         [id_lgs, id_user]
       );
 
-      // Conta total de likes
       const [[row]] = await pool.query(
         "SELECT COUNT(*) as totalLikes FROM likes WHERE id_lgs = ?",
         [id_lgs]
@@ -251,13 +249,11 @@ app.post("/likes", async (req, res) => {
       });
     }
 
-    // Não curtiu → inserir (curtir)
     await pool.query(
       "INSERT INTO likes (id_lgs, id_user) VALUES (?, ?)",
       [id_lgs, id_user]
     );
 
-    // Conta total de likes
     const [[row]] = await pool.query(
       "SELECT COUNT(*) as totalLikes FROM likes WHERE id_lgs = ?",
       [id_lgs]

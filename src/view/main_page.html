@@ -84,7 +84,6 @@
   const botao = document.querySelector(`#like-${id_lgs}`);
   if (!botao) return;
 
-  // evita cliques múltiplos
   if (botao.disabled) return;
   botao.disabled = true;
 
@@ -99,7 +98,6 @@
 
     if (!res.ok) throw new Error(data.message || "Erro ao curtir/descurtir");
 
-    // Atualiza frontend com o valor retornado
     const spanCount = botao.querySelector(".like-count");
     if (spanCount) spanCount.textContent = data.newLikes;
     botao.setAttribute("data-curtido", data.curtido);
