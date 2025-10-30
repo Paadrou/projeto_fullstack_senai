@@ -54,7 +54,7 @@
 
                 <div class="col-md-6">
                     <div id="metricas-usuario"></div>
-                   
+                    <button onclick="deletar()" class="btn-danger btn">DELETAR USUARIO</button>
                 </div>
 
 
@@ -63,6 +63,12 @@
     </main>
 </body>
 <script>
+
+    //DELETAR USER
+
+    const url_deleta = `http://localhost:3000/usuarios/${id_user}`
+
+    fetc
 
     //pega metricas
     const url_metricas = `http://localhost:3000/metricas-usuario/1`
@@ -82,8 +88,8 @@
 
                 console.log(data);
 
-                html += ` <div class=" justify-content-center mt-4">   <h3 class='text-center'> Usuario:${element.nome}</h3> 
-                     <button onclick="deletar()" class="btn-danger btn">DELETAR USUARIO</button>
+                html += ` <div class=" justify-content-center mt-4">   <h3 class='text-center'> Usuario: ${element.nome}</h3> 
+                
                 </div>`
             }
             document.getElementById("metricas-usuario").innerHTML = html
